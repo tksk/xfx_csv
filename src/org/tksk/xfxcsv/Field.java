@@ -6,7 +6,7 @@ public class Field implements FieldName {
 	private FieldDomain fieldDomain = FieldDomain.NEUTRAL;
 	private Formatter formatter;
 
-	/* package protected */
+	/* package private */
 	Field(String name) {
 		this.name = name;
 	}
@@ -15,7 +15,7 @@ public class Field implements FieldName {
 		return this.name;
 	}
 
-	/* package protected */
+	/* package private */
 	Field context(Context context) {
 		this.context = context;
 		return this;

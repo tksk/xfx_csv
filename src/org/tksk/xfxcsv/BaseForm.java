@@ -4,7 +4,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class BaseForm implements Iterable<Field> {
-	private List<Field> fields; // = new ArrayList<Field>();
+	private final List<Field> fields; // = new ArrayList<Field>();
 	private Context currentContext = null;
 
 	protected Field field(String name) {

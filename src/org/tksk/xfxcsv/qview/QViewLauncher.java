@@ -7,6 +7,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.sql.Connection;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -16,6 +18,7 @@ import java.util.jar.JarFile;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Request;
@@ -23,12 +26,19 @@ import org.mortbay.jetty.Server;
 import org.mortbay.jetty.handler.AbstractHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.stereotype.Component;
 import org.tksk.xfxcsv.BaseForm;
 import org.tksk.xfxcsv.Field;
 
+@Component
 public class QViewLauncher {
 
 	private static final Logger logger = LoggerFactory.getLogger(QViewLauncher.class);
+	@Autowired
+	static DataSource ds;
 
 	/**
 	 * @param args
@@ -42,7 +52,15 @@ public class QViewLauncher {
 		Constructor<BaseForm> formConstructor = formClass.getConstructor(List.class);
 		final List<Field> fields = new ArrayList<Field>();
 		final BaseForm form = formConstructor.newInstance(fields);
-*/
+*/		
+		ApplicationContext context = new ClassPathXmlApplicationContext("/applicationContext.xml");
+		ds = context.getBean("mainDataSource", DataSource.class);
+		Connection conn = ds.getConnection();
+		System.out.println(conn); // do something with the connection here..
+
+		Statement stmt = conn.createStatement();
+		stmt.execute("create table foo(a int, b varchar(255))");
+		stmt.close();
 
 		final Server server = new Server(Integer.parseInt(Settings.qview$httpPort.value()));
 		server.setGracefulShutdown(1000);
@@ -78,8 +96,15 @@ public class QViewLauncher {
 			        out.println("<ul><li><a href='/admin/shutdown'>shutdown</a></li></ul>");
 
 		        } else if(target.startsWith("/peek/")) {
-
 			        String cname = target.substring("/peek/".length());
+
+			        if(cname.equals("")) {
+			            response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+			        	response.setHeader("Location", "/");
+				        ((Request)request).setHandled(true);
+			        	return;
+			        }
+
 			        out.println("<h1>peek: " + cname + "</h1>");
 			        out.println("<table><tr>");
 
